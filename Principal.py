@@ -43,6 +43,9 @@ while run:
     if mover_abajo == True:
         delta_y = -5
 
+        # Vamos a mover al personaje
+        jugador.mover_personaje(delta_x, delta_y)
+
 # Hacemos que salga el cuadrado en la ventana
     jugador.draw(ventana)
 
@@ -53,13 +56,14 @@ while run:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_a:
-                print("Izquierda")
+                mover_izquierda = True
             if event.key == pygame.K_d:
-                print("Derecha")
+                mover_derecha = True
             if event.key == pygame.K_w:
-                print("Arriba")
+                mover_arriba = True
             if event.key == pygame.K_s:
-                print("Abajo")
+               mover_abajo = True
+
 
 
 # Permite actualizar la pantalla para que se vean los cambios

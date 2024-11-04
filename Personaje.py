@@ -12,3 +12,7 @@ class Personaje:
 
     def draw (self, ventana):
         pygame.draw.rect(ventana, Constantes.COLOR, self.forma)
+
+    def mover_personaje(self, delta_x, delta_y):
+        self.forma.x = self.forma.x + delta_x
+        self.forma.y = self.forma.y + delta_y
