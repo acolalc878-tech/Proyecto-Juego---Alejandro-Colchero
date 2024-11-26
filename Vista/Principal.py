@@ -7,6 +7,7 @@ from Modelo.Bala import Bala
 from Modelo.Enemigo import Enemigo
 from Modelo.Personaje import Personaje
 from Recursos import escalar_imagen, balas
+from Vista.MenuPrincipal import MenuPrincipal
 
 # Inicializar Pygame
 pygame.init()
@@ -87,15 +88,28 @@ reloj = pygame.time.Clock()
 #--------------------------------------------------------------------------------------------------------------------------------
 
 # Función para cargar música de fondo
-def musica_fondo():
+def musica_menu():
     try:
-        pygame.mixer.music.load("assets/music/musica.mp3")  # Cambia esta ruta a la correcta de tu archivo de música
-        pygame.mixer.music.set_volume(0.5)  # Ajustar el volumen
-        pygame.mixer.music.play(-1, 0.0)  # Reproducir música en bucle
-        print("Música cargada y reproduciéndose")
+            pygame.mixer.music.load("assets/music/musica_menu_principal.mp3")
+            pygame.mixer.music.set_volume(0.5)
+            pygame.mixer.music.play(-1)
+            print("La musica se ha cargado y se esta reproduciendo")
+    except pygame.error as e:
+            print(f"Error al cargar la música: {e}")
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+def musica_juego_fondo():
+    try:
+        pygame.mixer.music.load("assets/music/musica.mp3")
+        pygame.mixer.music.play(-1)
+        print("Musica cargada correctamente")
     except pygame.error as e:
         print(f"Error al cargar la música: {e}")
 
+menu = MenuPrincipal(ventana)
+
+musica_menu()
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
@@ -104,7 +118,8 @@ def cargar_fondo():
     try:
         fondo = pygame.image.load("assets/images/fondo/suelo-astroslayer.jpg")  # Cambia esta ruta si es necesario
         fondo = pygame.transform.scale(fondo, (
-        Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA))  # Escalar el fondo a toda la pantalla
+        Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA))
+        print("Fondo cargado correctamente")
         return fondo
     except pygame.error as e:
         print(f"Error al cargar el fondo: {e}")
@@ -112,10 +127,6 @@ def cargar_fondo():
 
 # Cargamos el fondo
 fondo = cargar_fondo()
-
-# Reproducir música de fondo
-musica_fondo()
-
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
@@ -207,7 +218,6 @@ def generar_enemigos():
         # Actualizar el tiempo de aparición
         enemigos_aparicion_tiempo = pygame.time.get_ticks()
 
-
 #--------------------------------------------------------------------------------------------------------------------------------
 
 def colisiones(self, enemigos):
@@ -216,60 +226,72 @@ def colisiones(self, enemigos):
             self.game_over = True
             break
 
-
 #--------------------------------------------------------------------------------------------------------------------------------
 
-# Bucle principal del juego
-run = True
-while run:
-    reloj.tick(Constantes.FPS)
+def bucle_juego():
+    corriendo = True
 
-    # Rellenar la ventana con el fondo (si se cargó correctamente)
-    ventana.fill(Constantes.COLOR_FONDO)
-    if fondo:  # Solo dibujar el fondo si se cargó correctamente
-        ventana.blit(fondo, (0, 0))  # Dibujar fondo en la ventana
+    while corriendo:
+        # Borramos la pantalla
+        ventana.fill((0,0,0))
 
-    # Manejo de eventos
-    run = manejar_eventos()
+        # Mostramos el fondo y el menú principal
+        ventana.blit(menu.fondo, (0,0))
+        menu.mostrar()
 
-    # Generar enemigos aleatorios
-    generar_enemigos()
+        # Actualizamos la pantalla
+        pygame.display.update()
 
-    enemigos.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                corriendo = False  # Cerrar el juego si el jugador cierra la ventana
+            accion = menu.manejar_eventos(event)
+            if accion == "Jugar":
+                print("El juego comienza")
+                corriendo = False  # Salir del ciclo del menú
+                pygame.mixer.music.stop()  # Detener la música del menú
+                musica_juego_fondo()  # Reproducir música del juego
 
-    # Comprobar colisiones entre el personaje y los enemigos
-    jugador.colisiones(enemigos)  # Verificamos las colisiones
+                bucle_inicio_juego(jugador)
+            elif accion == "Salir":
+                print("Saliendo del juego")
+                corriendo = False  # Salir del juego
+                pygame.quit()  # Asegúrate de que Pygame se cierra adecuadamente
 
-    # Si el personaje está muerto, mostramos la pantalla de Game Over
-    if jugador.muerto:
-        pantalla_game_over(ventana)
-        pygame.display.update()  # Actualizar la pantalla para mostrar Game Over
-        continue  # Salir del bucle principal hasta que el jugador reinicie
 
-    # Mover y dibujar enemigos
-    for enemigo in enemigos:
-        enemigo.actualizar()
-        enemigo.draw(ventana)
+#--------------------------------------------------------------------------------------------------------------------------------
+# Función del juego cuando empieza
+def bucle_inicio_juego(jugador):
+    global enemigos
+    print("Entrando en el bucle de inicio del juego...")
+    corriendo = True
+    while corriendo:
+        ventana.fill((0, 0, 0))  # Fondo negro
+        ventana.blit(fondo, (0, 0))  # Fondo del juego
 
-    balas.update(enemigos)
-    balas.draw(ventana)
+        # Manejar eventos (entrada de teclas y otras interacciones)
+        if not manejar_eventos():  # Si el jugador cierra la ventana, termina el juego
+            corriendo = False
 
-    # Movimiento del jugador
-    delta_x = delta_y = 0
-    if mover_derecha:
-        delta_x = Constantes.VELOCIDAD_PERSONAJE
-    if mover_izquierda:
-        delta_x = -Constantes.VELOCIDAD_PERSONAJE
-    if mover_arriba:
-        delta_y = -Constantes.VELOCIDAD_PERSONAJE
-    if mover_abajo:
-        delta_y = Constantes.VELOCIDAD_PERSONAJE
+        generar_enemigos()  # Generar enemigos
+        print(f"Generando enemigos: {len(enemigos)} enemigos en pantalla.")
 
-    jugador.mover(delta_x, delta_y)
-    jugador.actualizar()
+        # Actualizar los enemigos y el jugador
+        enemigos.update()
 
-    # Dibujar al jugador
-    jugador.draw(ventana)
+        # Dibujar los enemigos
+        for enemigo in enemigos:
+            ventana.blit(enemigo.image, enemigo.rect)
 
-    # Actualizar la pantalla
-    pygame.display.update()
+        # Dibujar al jugador
+        ventana.blit(jugador.image, jugador.rect)
+
+        # Actualizar la pantalla
+        pygame.display.update()
+
+        # Limitar el FPS a 60
+        reloj.tick(60)
+
+    pygame.quit()  # Cuando termine el juego, cerrar la ventana
+
+bucle_juego()
