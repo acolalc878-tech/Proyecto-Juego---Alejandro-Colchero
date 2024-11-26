@@ -1,10 +1,13 @@
 import random
 
 import pygame
-
+from Controlador import Constantes
+from Controlador.Constantes import VELOCIDAD_ENEMIGO
+from Modelo.Bala import Bala
 from Modelo.Enemigo import Enemigo
 from Modelo.Personaje import Personaje
-from Controlador import Constantes
+from Recursos import escalar_imagen, balas
+
 
 # Inicializar Pygame
 pygame.init()
@@ -13,13 +16,10 @@ pygame.init()
 ventana = pygame.display.set_mode((Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA))
 pygame.display.set_caption("ASTRO SLAYER")
 
+# Lista de enemigos
+enemigos = []
 
-# Cargar imágenes
-def escalar_imagen(image, scale):
-    w = image.get_width()
-    h = image.get_height()
-    return pygame.transform.scale(image, (w * scale, h * scale))
-
+#--------------------------------------------------------------------------------------------------------------------------------
 
 # Cargar animaciones del jugador
 def cargar_animaciones():
@@ -35,6 +35,7 @@ def cargar_animaciones():
                        Constantes.ESCALA_PERSONAJE) for i in range(6)]
     return animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento
 
+
 # Cargar las animaciones del jugador
 animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento = cargar_animaciones()
 
@@ -42,38 +43,50 @@ animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disp
 jugador = Personaje(350, 320, animacion_quieto, animacion_movimiento, animacion_disparo_quieto,
                     animacion_disparo_movimiento)
 
+#--------------------------------------------------------------------------------------------------------------------------------
+
+def animacion_bala():
+   return escalar_imagen(pygame.image.load(f"assets//images//character//player//player-shoott.png"), 0.5)
+
+bala = Bala(jugador.forma.right, jugador.forma.centery, "derecha")
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
 
 # Cargar animaciones de los enemigos
-def cargar_animaciones_enemigos():
+def carga_animacion_enemigo_1():
     animacion_movimiento_enemigo = [
         escalar_imagen(pygame.image.load(f"assets//images//character//enemies//cangrejo//crab-walk{i}.png"),
                        Constantes.ESCALA_ENEMIGO) for i in range(6)]  # Animación de caminar del enemigo
 
+    return animacion_movimiento_enemigo
+
+# Cargar las animaciones de enemigos
+animacion_movimiento_enemigo = carga_animacion_enemigo_1()
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+
+# Cargar animaciones enemigo 2
+def carga_animacion_enemigo_2():
     animacion_movimiento_enemigo_2 = [
         escalar_imagen(pygame.image.load(f"assets//images//character//enemies//ojo volador//fly-eye{i}.png"),
                        Constantes.ESCALA_ENEMIGO) for i in range(4)]
 
-    return animacion_movimiento_enemigo, animacion_movimiento_enemigo_2
-
+    return animacion_movimiento_enemigo_2
 
 # Cargar las animaciones de enemigos
-animacion_movimiento_enemigo, animacion_movimiento_enemigo_2 = cargar_animaciones_enemigos()
+animacion_movimiento_enemigo_2 = carga_animacion_enemigo_2()
 
 # Crear a los enemigos
-enemigos = pygame.sprite.Group()  # Agrupamos a todos los enemigos
-
-
-# Cargar animaciones enemigo 2
-
-
+enemigos = pygame.sprite.Group()  # Crear el grupo de enemigos
 
 # Variables del juego
 mover_arriba = mover_abajo = mover_derecha = mover_izquierda = False
 reloj = pygame.time.Clock()
 
 
-# Lista de enemigos
-enemigos = []
+#--------------------------------------------------------------------------------------------------------------------------------
 
 
 # Función para cargar música de fondo
@@ -85,6 +98,8 @@ def musica_fondo():
         print("Música cargada y reproduciéndose")
     except pygame.error as e:
         print(f"Error al cargar la música: {e}")
+
+#--------------------------------------------------------------------------------------------------------------------------------
 
 
 # Función para cargar el fondo
@@ -104,6 +119,7 @@ fondo = cargar_fondo()
 # Reproducir música de fondo
 musica_fondo()
 
+#--------------------------------------------------------------------------------------------------------------------------------
 
 
 # Función para manejar los eventos
@@ -123,8 +139,9 @@ def manejar_eventos():
                 mover_arriba = True
             if event.key == pygame.K_s:
                 mover_abajo = True
-            if event.key == pygame.K_e:
+            if pygame.key.get_pressed()[pygame.K_e]:
                 jugador.disparar()  # Activar la animación de disparo
+
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 mover_izquierda = False
@@ -136,30 +153,38 @@ def manejar_eventos():
                 mover_abajo = False
     return True
 
-# Inicializamos ala variable para la aparición de enemigos
+#--------------------------------------------------------------------------------------------------------------------------------
+
+
+# Variable global para controlar el tiempo de aparición de enemigos
 enemigos_aparicion_tiempo = pygame.time.get_ticks()
 
-# Función para generar enemigos desde los bordes de la pantalla
+
+# Función para generar los enemigos
 def generar_enemigos():
-    global enemigos_aparicion_tiempo  # Aseguramos que la variable global se utilice
+    global enemigos_aparicion_tiempo
 
-    if pygame.time.get_ticks() - enemigos_aparicion_tiempo >= 3000:  # Cada 3 segundos
-        # Enemigo 1 desde la izquierda
-        x_izquierda = -100  # Enemigo que aparece desde el borde izquierdo
-        y_izquierda = random.randint(0, Constantes.ALTO_VENTANA)
-        enemigo_izquierda = Enemigo(x_izquierda, y_izquierda, animacion_movimiento_enemigo, "derecha")
+    # Generar enemigos cada 2 segundos
+    if pygame.time.get_ticks() - enemigos_aparicion_tiempo >= 2000:
+        # Generar el primer enemigo (ojo volador) desde el borde izquierdo
+        if random.choice([True, False]):
+            x_izquierda = -100  # Fuera de la pantalla a la izquierda
+            y_izquierda = random.randint(0, Constantes.ALTO_VENTANA)
+            enemigo_izquierda = Enemigo(x_izquierda, y_izquierda, animacion_movimiento_enemigo, VELOCIDAD_ENEMIGO, "derecha")
+            enemigos.add(enemigo_izquierda)
 
-        # Enemigo 2 desde la derecha
-        x_derecha = Constantes.ANCHO_VENTANA + 100  # Enemigo que aparece desde el borde derecho
-        y_derecha = random.randint(0, Constantes.ALTO_VENTANA)
-        enemigo_derecha = Enemigo(x_derecha, y_derecha, animacion_movimiento_enemigo_2, "izquierda")
+        # Generar el segundo enemigo (Cangrejo) desde el borde derecho
+        if not random.choice([True, False]):
+            x_derecha = Constantes.ANCHO_VENTANA + 100  # Fuera de la pantalla a la derecha
+            y_derecha = random.randint(0, Constantes.ALTO_VENTANA)
+            enemigo_derecha = Enemigo(x_derecha, y_derecha, animacion_movimiento_enemigo_2, VELOCIDAD_ENEMIGO, "izquierda")
+            enemigos.add(enemigo_derecha)
 
-        # Agregar los enemigos a la lista de enemigos
-        enemigos.append(enemigo_izquierda)
-        enemigos.append(enemigo_derecha)
-
-        # Actualizar el tiempo de aparición de enemigos
+        # Actualizar el tiempo de aparición
         enemigos_aparicion_tiempo = pygame.time.get_ticks()
+
+
+#--------------------------------------------------------------------------------------------------------------------------------
 
 
 # Bucle principal del juego
@@ -178,11 +203,15 @@ while run:
     # Generar enemigos aleatorios
     generar_enemigos()
 
+    enemigos.update()
+
     # Mover y dibujar enemigos
-    for enemigo in enemigos[:]: # Iterar sobre una copia de la lista para evitar modificarla mientras la recorres
-        enemigo.mover()
+    for enemigo in enemigos:
         enemigo.actualizar()
         enemigo.draw(ventana)
+
+    balas.update()
+    balas.draw(ventana)
 
     # Movimiento del jugador
     delta_x = delta_y = 0

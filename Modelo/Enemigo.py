@@ -1,30 +1,35 @@
 import pygame
 
-from Controlador import Constantes
-
 class Enemigo(pygame.sprite.Sprite):
-    def __init__(self, x, y, animacion_moverse, direccion):
-        # Animacion de movimiento
+    def __init__(self, x, y, animacion, velocidad, direccion):
+        super().__init__()
         self.x = x
         self.y = y
-        self.animacion_moverse = animacion_moverse
-        self.imagen_actual = self.animacion_moverse[0]
-        self.rect = self.imagen_actual.get_rect()
-        self.rect.x = self.x
-        self.rect.y = self.y
-        self.frame = 0
+        self.animacion = animacion  # Lista de imágenes para la animación
+        self.velocidad = velocidad
         self.direccion = direccion
+        self.image = animacion[0]  # Suponemos que animacion es una lista de imágenes
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
 
-    def mover(self):
-        # El enemigo se mueve hacia el jugador
-        self.x -= Constantes.VELOCIDAD_ENEMIGO # Se mueve a la izquierda
-        self.rect.x = self.x # Actualizamos la posicion del enemigo
+        # Variables para las animaciones del enemigo
+        self.frame_index = 0
+        self.last_update = pygame.time.get_ticks()  # Tiempo de la última actualización de la animación
+        self.frame_duration = 100
 
     def actualizar(self):
-        self.frame += 0.1 # Cambiar el valor para ajustar la velocidad de la animación
-        if self.frame >= len(self.animacion_moverse):
-            self.frame = 0
-        self.imagen_actual = self.animacion_moverse[int(self.frame)]
+        if self.direccion == "derecha":
+            self.rect.x += self.velocidad
+        elif self.direccion == "izquierda":
+            self.rect.x -= self.velocidad
+
+        now = pygame.time.get_ticks()
+        if now - self.last_update >= self.frame_duration:
+            # Ha pasado el tiempo suficiente para cambiar de frame
+            self.frame_index = (self.frame_index + 1) % len(self.animacion)  # Cicla entre los frames
+            self.image = self.animacion[self.frame_index]  # Cambia la imagen actual
+            self.last_update = now  # Actualiza el tiempo de la última actualizacióaaaaa
 
     def draw(self, ventana):
-        ventana.blit(self.imagen_actual, self.rect)
+        ventana.blit(self.image, self.rect)

@@ -1,4 +1,4 @@
-# Dimensiones de la ventana
+
 ANCHO_VENTANA = 800
 ALTO_VENTANA = 600
 
@@ -23,3 +23,4 @@ ESCALA_PERSONAJE = 2.5
 ESCALA_ENEMIGO = 2.2
 
 MUSICA_FONDO = "assets//music//musica.mp3"
+ESCALA_BALA = 2.5
