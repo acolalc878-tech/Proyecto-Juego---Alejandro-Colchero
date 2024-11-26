@@ -18,8 +18,8 @@ class Enemigo(pygame.sprite.Sprite):
         self.last_update = pygame.time.get_ticks()  # Tiempo de la última actualización de la animación
         self.frame_duration = 100
 
-    def morir(self):
-        self.vivo = False
+
+    def destruir(self):
         self.kill()  # Eliminar el enemigo de los grupos
 
     def actualizar(self):
@@ -38,10 +38,15 @@ class Enemigo(pygame.sprite.Sprite):
         ventana.blit(self.image, self.rect)
 
     def colision_jugador(self, jugador):
-        return self.rect.colliderect(jugador.rect)
+        if self.rect.colliderect(jugador.rect):
+            jugador.recibir_dano()  # Si colide con el jugador, recibe daño
+            self.recibir_dano()  # El enemigo recibe daño
+            return True
+        return False
 
     def colision_bala(self, bala):
-        return self.rect.colliderect(bala.rect)
-
-    def morir(self):
-        self.kill() # Elimina al enemigo del grupo de los sprites
+        if self.rect.colliderect(bala.rect):
+            self.recibir_dano()  # Si colide con una bala, recibe daño
+            bala.kill()  # Destruye la bala después de la colisión
+            return True
+        return False

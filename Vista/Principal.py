@@ -65,7 +65,6 @@ animacion_movimiento_enemigo = carga_animacion_enemigo_1()
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
-
 # Cargar animaciones enemigo 2
 def carga_animacion_enemigo_2():
     animacion_movimiento_enemigo_2 = [
@@ -87,7 +86,6 @@ reloj = pygame.time.Clock()
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
-
 # Función para cargar música de fondo
 def musica_fondo():
     try:
@@ -100,7 +98,6 @@ def musica_fondo():
 
 
 #--------------------------------------------------------------------------------------------------------------------------------
-
 
 # Función para cargar el fondo
 def cargar_fondo():
@@ -122,7 +119,6 @@ musica_fondo()
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
-
 # Función para manejar los eventos
 def manejar_eventos():
     global mover_izquierda, mover_derecha, mover_arriba, mover_abajo
@@ -132,18 +128,19 @@ def manejar_eventos():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_a:
                 mover_izquierda = True
-                jugador.direccion = "izquierda"  # Actualiza la dirección del jugador
+                jugador.direccion = "izquierda"
             if event.key == pygame.K_d:
                 mover_derecha = True
-                jugador.direccion = "derecha"  # Actualiza la dirección del jugador
+                jugador.direccion = "derecha"
             if event.key == pygame.K_w:
                 mover_arriba = True
             if event.key == pygame.K_s:
                 mover_abajo = True
-            if pygame.key.get_pressed()[pygame.K_e]:
+            if event.key == pygame.K_e:
                 jugador.disparar()  # Activar la animación de disparo
-            if pygame.key.get_pressed()[pygame.K_r]:
-                jugador = Personaje(350, 320)
+            if event.key == pygame.K_r and jugador.muerto:
+                reiniciar_juego()
+                return True
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
@@ -159,6 +156,29 @@ def manejar_eventos():
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
+def reiniciar_juego():
+    global jugador, enemigos
+    jugador = Personaje(350, 320, animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento)
+    enemigos = pygame.sprite.Group()
+    print("Juego reiniciado")
+
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+def pantalla_game_over(ventana):
+    fuente = pygame.font.Font("fuentes//Pixel Times.ttf", 70)
+
+    texto_game_over= fuente.render("GAME OVER", True, (255,0,0))
+    ventana.blit(texto_game_over, (
+             Constantes.ANCHO_VENTANA // 2 - texto_game_over.get_width() // 2, Constantes.ALTO_VENTANA // 2 - texto_game_over.get_height() // 2))
+
+    fuente_reiniciar = pygame.font.Font("fuentes//Pixel Times.ttf", 40)
+    texto_reiniciar = fuente_reiniciar.render("Presione R para reiniciar", True, (255, 255, 255))
+    ventana.blit(texto_reiniciar, (
+        Constantes.ANCHO_VENTANA // 2 - texto_reiniciar.get_width() // 2, Constantes.ALTO_VENTANA // 2 + 100))
+
+
+#--------------------------------------------------------------------------------------------------------------------------------
 
 # Variable global para controlar el tiempo de aparición de enemigos
 enemigos_aparicion_tiempo = pygame.time.get_ticks()
@@ -168,8 +188,8 @@ enemigos_aparicion_tiempo = pygame.time.get_ticks()
 def generar_enemigos():
     global enemigos_aparicion_tiempo
 
-    # Generar enemigos cada 2 segundos
-    if pygame.time.get_ticks() - enemigos_aparicion_tiempo >= 2000:
+    # Generar enemigos cada segundo
+    if pygame.time.get_ticks() - enemigos_aparicion_tiempo >= 1000:
         # Generar el primer enemigo (ojo volador) desde el borde izquierdo
         if random.choice([True, False]):
             x_izquierda = -100  # Fuera de la pantalla a la izquierda
@@ -190,28 +210,14 @@ def generar_enemigos():
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
-def pantalla_game_over(ventana):
-    fuente = pygame.font.Font("fuentes//Pixel Times.ttf", 70)
-
-    texto_game_over= fuente.render("GAMER OVER", True, (255,0,0))
-    ventana.blit(texto_game_over, (
-             Constantes.ANCHO_VENTANA // 2 - texto_game_over.get_width() // 2, Constantes.ALTO_VENTANA // 2 - texto_game_over.get_height() // 2))
-
-    texto_reiniciar = fuente.render("Presione R para reiniciar", True, (255,255,255))
-    ventana.blit(texto_reiniciar, (
-    Constantes.ANCHO_VENTANA // 2 - texto_reiniciar.get_width() // 2, Constantes.ALTO_VENTANA // 2 + 100))
-
-
-#--------------------------------------------------------------------------------------------------------------------------------
-
 def colisiones(self, enemigos):
     for enemigo in enemigos:
         if self.rect.colliderect(enemigo.rect):
             self.game_over = True
             break
 
-#--------------------------------------------------------------------------------------------------------------------------------
 
+#--------------------------------------------------------------------------------------------------------------------------------
 
 # Bucle principal del juego
 run = True
@@ -231,21 +237,21 @@ while run:
 
     enemigos.update()
 
+    # Comprobar colisiones entre el personaje y los enemigos
+    jugador.colisiones(enemigos)  # Verificamos las colisiones
+
+    # Si el personaje está muerto, mostramos la pantalla de Game Over
+    if jugador.muerto:
+        pantalla_game_over(ventana)
+        pygame.display.update()  # Actualizar la pantalla para mostrar Game Over
+        continue  # Salir del bucle principal hasta que el jugador reinicie
+
     # Mover y dibujar enemigos
     for enemigo in enemigos:
         enemigo.actualizar()
         enemigo.draw(ventana)
 
-    jugador.colisiones(enemigos)
-
-    if jugador.game_over:
-        pantalla_game_over(ventana)
-        pygame.display.flip()
-
-        key= pygame.key.get_pressed()
-        if keys[py]
-
-    balas.update()
+    balas.update(enemigos)
     balas.draw(ventana)
 
     # Movimiento del jugador
@@ -267,6 +273,3 @@ while run:
 
     # Actualizar la pantalla
     pygame.display.update()
-
-# Salir de Pygame
-pygame.quit()

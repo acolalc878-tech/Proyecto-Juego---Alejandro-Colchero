@@ -1,7 +1,5 @@
 import pygame
-from Controlador import Constantes
 from Recursos import IMAGEN_BALA, balas
-
 
 class Bala(pygame.sprite.Sprite):
     def __init__(self, x, y, direccion):
@@ -18,21 +16,19 @@ class Bala(pygame.sprite.Sprite):
         balas.add(self)
 
     # Función para actualizar la posicion de la bala
-    def update(self):
-        from Vista.Principal import enemigos
-        # Actualizar la posición de la bala según su dirección
+    def update(self, enemigos):  # Pasamos enemigos como argumento
+        # Actualizamos la posición según la dirección
         if self.direccion == "derecha":
-            self.rect.x += 10  # Mueve la bala a la derecha
+            self.rect.x += 10  # Aumentar la posición en x para mover hacia la derecha
         elif self.direccion == "izquierda":
-            self.rect.x -= 10  # Mueve la bala a la izquierda
+            self.rect.x -= 10  # Reducir la posición en x para mover hacia la izquierda
+        elif self.direccion == "arriba":
+            self.rect.y -= 10  # Reducir la posición en y para mover hacia arriba
+        elif self.direccion == "abajo":
+            self.rect.y += 10  # Aumentar la posición en y para mover hacia abajo
 
-        # Verificar si la bala sale de la pantalla
-        if self.rect.right < 0 or self.rect.left > Constantes.ANCHO_VENTANA:
-            self.kill()  # Eliminar la bala si sale de la pantalla
-
-        # Verificar si la bala colisiona con algún enemigo
-        for enemigo in enemigos:  # 'enemigos' es el grupo de enemigos
-            if self.rect.colliderect(enemigo.rect):  # Comprobar colisión entre bala y enemigo
-                self.kill()  # Eliminar la bala al impactar
-                enemigo.morir()
-                break  # Salir del bucle después de que la bala haya impactado con un enemigo
+        # Gestionar las colisiones con los enemigos
+        for enemigo in enemigos:
+            if self.rect.colliderect(enemigo.rect):
+                self.kill()  # Destruir la bala si colisiona con un enemigo
+                enemigo.destruir()
