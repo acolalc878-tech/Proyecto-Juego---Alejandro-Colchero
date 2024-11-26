@@ -18,4 +18,8 @@ FPS = 60
 
 # Velocidad y tamaño del personaje
 VELOCIDAD_PERSONAJE = 2.5
-ESCALA_PERSONAJE = 1.8
+VELOCIDAD_ENEMIGO = 2.0
+ESCALA_PERSONAJE = 2.5
+ESCALA_ENEMIGO = 2.2
+
+MUSICA_FONDO = "assets//music//musica.mp3"

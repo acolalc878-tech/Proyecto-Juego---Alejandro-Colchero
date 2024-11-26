@@ -1,6 +1,5 @@
 import pygame
 
-
 class Personaje:
     def __init__(self, x, y, animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento):
         self.animacion_quieto = animacion_quieto
@@ -100,7 +99,6 @@ class Personaje:
 
             voltear_imagen_disparo = pygame.transform.flip(imagen_disparo, self.voltear, False)
             ventana.blit(voltear_imagen_disparo, self.forma)
-
 
     def disparar(self):
         if not self.disparando:
