@@ -18,6 +18,10 @@ class Enemigo(pygame.sprite.Sprite):
         self.last_update = pygame.time.get_ticks()  # Tiempo de la última actualización de la animación
         self.frame_duration = 100
 
+    def morir(self):
+        self.vivo = False
+        self.kill()  # Eliminar el enemigo de los grupos
+
     def actualizar(self):
         if self.direccion == "derecha":
             self.rect.x += self.velocidad
@@ -26,10 +30,18 @@ class Enemigo(pygame.sprite.Sprite):
 
         now = pygame.time.get_ticks()
         if now - self.last_update >= self.frame_duration:
-            # Ha pasado el tiempo suficiente para cambiar de frame
-            self.frame_index = (self.frame_index + 1) % len(self.animacion)  # Cicla entre los frames
-            self.image = self.animacion[self.frame_index]  # Cambia la imagen actual
-            self.last_update = now  # Actualiza el tiempo de la última actualizacióaaaaa
+            self.frame_index = (self.frame_index + 1) % len(self.animacion)
+            self.image = self.animacion[self.frame_index]
+            self.last_update = now
 
     def draw(self, ventana):
         ventana.blit(self.image, self.rect)
+
+    def colision_jugador(self, jugador):
+        return self.rect.colliderect(jugador.rect)
+
+    def colision_bala(self, bala):
+        return self.rect.colliderect(bala.rect)
+
+    def morir(self):
+        self.kill() # Elimina al enemigo del grupo de los sprites

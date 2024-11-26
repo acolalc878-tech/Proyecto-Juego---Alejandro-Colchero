@@ -8,7 +8,6 @@ from Modelo.Enemigo import Enemigo
 from Modelo.Personaje import Personaje
 from Recursos import escalar_imagen, balas
 
-
 # Inicializar Pygame
 pygame.init()
 
@@ -48,7 +47,7 @@ jugador = Personaje(350, 320, animacion_quieto, animacion_movimiento, animacion_
 def animacion_bala():
    return escalar_imagen(pygame.image.load(f"assets//images//character//player//player-shoott.png"), 0.5)
 
-bala = Bala(jugador.forma.right, jugador.forma.centery, "derecha")
+bala = Bala(jugador.rect.right, jugador.rect.centery, "derecha")
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
@@ -99,6 +98,7 @@ def musica_fondo():
     except pygame.error as e:
         print(f"Error al cargar la música: {e}")
 
+
 #--------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -118,6 +118,7 @@ fondo = cargar_fondo()
 
 # Reproducir música de fondo
 musica_fondo()
+
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
@@ -141,6 +142,8 @@ def manejar_eventos():
                 mover_abajo = True
             if pygame.key.get_pressed()[pygame.K_e]:
                 jugador.disparar()  # Activar la animación de disparo
+            if pygame.key.get_pressed()[pygame.K_r]:
+                jugador = Personaje(350, 320)
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
@@ -152,6 +155,7 @@ def manejar_eventos():
             if event.key == pygame.K_s:
                 mover_abajo = False
     return True
+
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
@@ -186,6 +190,28 @@ def generar_enemigos():
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
+def pantalla_game_over(ventana):
+    fuente = pygame.font.Font("fuentes//Pixel Times.ttf", 70)
+
+    texto_game_over= fuente.render("GAMER OVER", True, (255,0,0))
+    ventana.blit(texto_game_over, (
+             Constantes.ANCHO_VENTANA // 2 - texto_game_over.get_width() // 2, Constantes.ALTO_VENTANA // 2 - texto_game_over.get_height() // 2))
+
+    texto_reiniciar = fuente.render("Presione R para reiniciar", True, (255,255,255))
+    ventana.blit(texto_reiniciar, (
+    Constantes.ANCHO_VENTANA // 2 - texto_reiniciar.get_width() // 2, Constantes.ALTO_VENTANA // 2 + 100))
+
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
+def colisiones(self, enemigos):
+    for enemigo in enemigos:
+        if self.rect.colliderect(enemigo.rect):
+            self.game_over = True
+            break
+
+#--------------------------------------------------------------------------------------------------------------------------------
+
 
 # Bucle principal del juego
 run = True
@@ -209,6 +235,15 @@ while run:
     for enemigo in enemigos:
         enemigo.actualizar()
         enemigo.draw(ventana)
+
+    jugador.colisiones(enemigos)
+
+    if jugador.game_over:
+        pantalla_game_over(ventana)
+        pygame.display.flip()
+
+        key= pygame.key.get_pressed()
+        if keys[py]
 
     balas.update()
     balas.draw(ventana)
