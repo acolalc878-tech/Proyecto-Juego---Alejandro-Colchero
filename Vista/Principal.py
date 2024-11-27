@@ -131,7 +131,7 @@ fondo = cargar_fondo()
 
 # Función para manejar los eventos
 def manejar_eventos():
-    global mover_izquierda, mover_derecha, mover_arriba, mover_abajo, run
+    global mover_izquierda, mover_derecha, mover_arriba, mover_abajo, run, jugador, enemigos
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return False
@@ -146,9 +146,7 @@ def manejar_eventos():
                 mover_arriba = True
             if event.key == pygame.K_s:
                 mover_abajo = True
-            if event.key == pygame.K_e:
-                jugador.disparar()  # Activar la animación de disparo
-            if event.key == pygame.K_r and jugador.muerto:  # Reiniciar el juego si el jugador presiona R
+            if event.key == pygame.K_r:  # Reiniciar el juego con la tecla R
                 reiniciar_juego()
                 return True
 
@@ -168,22 +166,43 @@ def manejar_eventos():
 def reiniciar_juego():
     global jugador, enemigos
     jugador = Personaje(350, 320, animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento)
-    enemigos = pygame.sprite.Group()  # Vuelves a crear los enemigos
+    enemigos = pygame.sprite.Group()  # Reiniciamos el grupo de enemigos
     print("Juego reiniciado")
 
-#--------------------------------------------------------------------------------------------------------------------------------
 
+#--------------------------------------------------------------------------------------------------------------------------------
 def pantalla_game_over(ventana):
     fuente = pygame.font.Font("fuentes//Pixel Times.ttf", 70)
 
-    texto_game_over= fuente.render("GAME OVER", True, (255,0,0))
-    ventana.blit(texto_game_over, (
-             Constantes.ANCHO_VENTANA // 2 - texto_game_over.get_width() // 2, Constantes.ALTO_VENTANA // 2 - texto_game_over.get_height() // 2))
+    while True:
+        ventana.fill((0, 0, 0))  # Fondo negro
+        texto_game_over = fuente.render("GAME OVER", True, (255, 0, 0))
+        ventana.blit(
+            texto_game_over,
+            (
+                Constantes.ANCHO_VENTANA // 2 - texto_game_over.get_width() // 2,
+                Constantes.ALTO_VENTANA // 2 - texto_game_over.get_height() // 2,
+            ),
+        )
 
-    fuente_reiniciar = pygame.font.Font("fuentes//Pixel Times.ttf", 40)
-    texto_reiniciar = fuente_reiniciar.render("Presione R para reiniciar", True, (255, 255, 255))
-    ventana.blit(texto_reiniciar, (
-        Constantes.ANCHO_VENTANA // 2 - texto_reiniciar.get_width() // 2, Constantes.ALTO_VENTANA // 2 + 100))
+        fuente_reiniciar = pygame.font.Font("fuentes//Pixel Times.ttf", 40)
+        texto_reiniciar = fuente_reiniciar.render("Presione R para reiniciar", True, (255, 255, 255))
+        ventana.blit(
+            texto_reiniciar,
+            (
+                Constantes.ANCHO_VENTANA // 2 - texto_reiniciar.get_width() // 2,
+                Constantes.ALTO_VENTANA // 2 + 100,
+            ),
+        )
+
+        pygame.display.update()  # Actualizar la pantalla
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()  # Salir completamente del programa
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                return
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
@@ -277,11 +296,21 @@ def bucle_juego_inicio(jugador):
         elif keys[pygame.K_DOWN]:
             delta_y = jugador.velocidad
 
+
         jugador.mover(delta_x, delta_y)  # Mover al jugador
         jugador.actualizar_animacion()  # Actualizar animaciones del jugador
+        ventana.blit(jugador.image, jugador.rect)
 
         # Generar y mover enemigos
         generar_enemigos(enemigos)
+
+        # Detectar colisiones
+        jugador.colisiones(enemigos)
+        if jugador.muerto:
+            pantalla_game_over(ventana)  # Muestra la pantalla de Game Over
+            reiniciar_juego()  # Llama a tu función para reiniciar el juego
+            break
+        pygame.display.update()
 
         # Actualizar la pantalla
         ventana.fill((0, 0, 0))
@@ -294,11 +323,10 @@ def bucle_juego_inicio(jugador):
             ventana.blit(enemigo.image, enemigo.rect)
 
         # Dibujar al jugador
-        ventana.blit(jugador.image, jugador.rect)
+        jugador.draw(ventana)
 
         pygame.display.update()
         reloj.tick(60)
-
 
 
 #--------------------------------------------------------------------------------------------------------------------------------

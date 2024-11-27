@@ -14,5 +14,5 @@ class Juego:
             self.reloj.tick(Constantes.FPS)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    run = False  # Termina el juego
+                    run = False
             pygame.display.update()
