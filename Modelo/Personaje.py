@@ -1,4 +1,6 @@
 import pygame
+
+from Controlador import Constantes
 from Modelo.Bala import Bala
 from Recursos import balas
 
@@ -13,10 +15,10 @@ class Personaje:
         self.voltear = False  # Controla la dirección de la imagen (mirar a la izquierda o derecha)
         self.frames_indice_movimiento = 0  # Índice para animación de movimiento
         self.frames_indice_disparo = 0  # Índice para animación de disparo
-        self.actualizar_tiempo_movimiento = pygame.time.get_ticks()  # Última vez que se actualizó la animación
+        self.actualizar_tiempo_movimiento = pygame.time.get_ticks()
         self.actualizar_tiempo_disparo = pygame.time.get_ticks()
 
-        # Inicializa 'rect' aquí, que es donde se define la posición y tamaño del personaje
+        # Inicializamos 'rect', que es donde se define la posición y tamaño del personaje
         self.image = self.animacion_quieto[0]
         self.rect = self.image.get_rect()  # Crea el rectángulo a partir de la imagen
         self.rect.center = (x, y)  # Inicializa el centro del personaje en las coordenadas (x, y)
@@ -34,13 +36,18 @@ class Personaje:
 # --------------------------------------------------------------------------------------------------------------------------------
 
     def mover(self, delta_x, delta_y):
-        if delta_x < 0:
-            self.voltear = True  # Mover izquierda
-        elif delta_x > 0:
-            self.voltear = False  # Mover derecha
         self.rect.x += delta_x
         self.rect.y += delta_y
-        self.en_movimiento = delta_x != 0 or delta_y != 0
+
+        # Evitar que el personaje salga de la pantalla
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > Constantes.ANCHO_VENTANA:
+            self.rect.right = Constantes.ANCHO_VENTANA
+        if self.rect.top < 0:
+            self.rect.top = 0
+        if self.rect.bottom > Constantes.ALTO_VENTANA:
+            self.rect.bottom = Constantes.ALTO_VENTANA
 
 # --------------------------------------------------------------------------------------------------------------------------------
 
@@ -50,40 +57,25 @@ class Personaje:
 
 # --------------------------------------------------------------------------------------------------------------------------------
 
-    def actualizar(self):
-        if self.muerto:
-            return  # Si está muerto, no actualiza más
+    def actualizar_animacion(self):
+        # Control de animación según el estado
+        tiempo_actual = pygame.time.get_ticks()
 
-        tiempoEspera = 100
-        tiempo_disparo = 125
-
-        # Animación de movimiento
-        if self.en_movimiento:
-            if pygame.time.get_ticks() - self.actualizar_tiempo_movimiento >= tiempoEspera:
-                self.frames_indice_movimiento = (self.frames_indice_movimiento + 1) % len(self.animacion_movimiento)
-                self.actualizar_tiempo_movimiento = pygame.time.get_ticks()
-            self.image = self.animacion_movimiento[self.frames_indice_movimiento]
-        else:
+        # Cambiar animaciones según la acción
+        if self.direccion == "izquierda" or self.direccion == "derecha":
+            if tiempo_actual - self.last_update > self.frame_duration:
+                self.last_update = tiempo_actual
+                self.frame_index = (self.frame_index + 1) % len(self.animacion_movimiento)
+                self.image = self.animacion_movimiento[self.frame_index]
+        elif self.direccion == "disparando":
+            if tiempo_actual - self.last_update > self.frame_duration:
+                self.last_update = tiempo_actual
+                self.frame_index = (self.frame_index + 1) % len(self.animacion_disparo_movimiento)
+                self.image = self.animacion_disparo_movimiento[self.frame_index]
+        else:  # Animación por defecto (quieto)
             self.image = self.animacion_quieto[0]
 
-        # Animación de disparo
-        if self.disparando:
-            if pygame.time.get_ticks() - self.actualizar_tiempo_disparo >= tiempo_disparo:
-                self.frames_indice_disparo += 1
-                self.actualizar_tiempo_disparo = pygame.time.get_ticks()
-
-            if self.en_movimiento:
-                if len(self.animacion_disparo_movimiento) > 0:
-                    self.image = self.animacion_disparo_movimiento[ self.frames_indice_disparo % len(self.animacion_disparo_movimiento)]
-            else:
-                if len(self.animacion_disparo_quieto) > 0:
-                    self.image = self.animacion_disparo_quieto[ self.frames_indice_disparo % len(self.animacion_disparo_quieto)]
-
-            if self.frames_indice_disparo >= len(self.animacion_disparo_quieto):
-                self.frames_indice_disparo = 0
-                self.disparando = False
-
-# --------------------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------------------------------------------------
 
     def draw(self, ventana):
         if self.muerto:

@@ -29,13 +29,12 @@ class Enemigo(pygame.sprite.Sprite):
         elif self.direccion == "izquierda":
             self.rect.x -= self.velocidad
 
-        # Actualizar la animación
-        now = pygame.time.get_ticks()
-        if now - self.last_update >= self.frame_duration:
-            # Ha pasado el tiempo suficiente para cambiar de frame
-            self.frame_index = (self.frame_index + 1) % len(self.animacion)  # Cicla entre los frames
-            self.image = self.animacion[self.frame_index]  # Cambia la imagen actual
-            self.last_update = now  # Actualiza el tiempo de la última actualización
+    def actualizar_animacion(self):
+        tiempo_actual = pygame.time.get_ticks()
+        if tiempo_actual - self.last_update > self.frame_duration:
+            self.last_update = tiempo_actual
+            self.frame_index = (self.frame_index + 1) % len(self.animacion)
+            self.image = self.animacion[self.frame_index]
 
     def draw(self, ventana):
         ventana.blit(self.image, self.rect)
