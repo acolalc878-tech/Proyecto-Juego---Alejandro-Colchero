@@ -25,7 +25,7 @@ class Personaje:
         self.en_movimiento = False
         self.disparando = False
 
-        self.vida = 3
+        self.vida = 3  # Vida del personaje
         self.direccion = "derecha"
 
         self.colisiones_con_enemigos = 0  # Contador de colisiones con enemigos
@@ -52,7 +52,7 @@ class Personaje:
 
     def actualizar(self):
         if self.muerto:
-            return
+            return  # Si está muerto, no actualiza más
 
         tiempoEspera = 100
         tiempo_disparo = 125
@@ -74,12 +74,10 @@ class Personaje:
 
             if self.en_movimiento:
                 if len(self.animacion_disparo_movimiento) > 0:
-                    self.image = self.animacion_disparo_movimiento[
-                        self.frames_indice_disparo % len(self.animacion_disparo_movimiento)]
+                    self.image = self.animacion_disparo_movimiento[ self.frames_indice_disparo % len(self.animacion_disparo_movimiento)]
             else:
                 if len(self.animacion_disparo_quieto) > 0:
-                    self.image = self.animacion_disparo_quieto[
-                        self.frames_indice_disparo % len(self.animacion_disparo_quieto)]
+                    self.image = self.animacion_disparo_quieto[ self.frames_indice_disparo % len(self.animacion_disparo_quieto)]
 
             if self.frames_indice_disparo >= len(self.animacion_disparo_quieto):
                 self.frames_indice_disparo = 0
@@ -110,18 +108,17 @@ class Personaje:
 # --------------------------------------------------------------------------------------------------------------------------------
 
     def colisiones(self, enemigos):
-            for enemigo in enemigos:
-                if self.rect.colliderect(enemigo.rect):  # Verifica si el jugador toca al enemigo
-                    self.vida -= 1  # El jugador pierde vida al tocar al enemigo
-                    if self.vida <= 0:
-                        self.muerto = True  # El jugador muere después de 3 colisiones
-                        break  # Termina el ciclo de colisiones si el jugador muere
+        for enemigo in enemigos:
+            if self.rect.colliderect(enemigo.rect):  # Verifica si el jugador toca al enemigo
+                self.vida -= 1  # El jugador pierde vida al tocar al enemigo
+                if self.vida <= 0:
+                    self.muerto = True  # El jugador muere después de 3 colisiones
+                    break  # Termina el ciclo de colisiones si el jugador muere
 
-                    enemigo.destruir()
+                enemigo.destruir()
 
-# --------------------------------------------------------------------------------------------------------------------------------
 
     def recibir_danio(self):
         self.vida -= 1
         if self.vida <= 0:
-            self.muerto = True
+            self.muerto = True  # El personaje muere si su vida llega a 0

@@ -1,8 +1,6 @@
 import pygame
-from Modelo.Personaje import Personaje
-from Modelo.Bala import Bala
-from Modelo.Enemigo import Enemigo
 from Controlador import Constantes
+from Vista.Principal import ventana
 
 class Juego:
     def __init__(self, ventana):
@@ -10,6 +8,7 @@ class Juego:
         self.reloj = pygame.time.Clock()
 
     def iniciar(self):
+        # Aquí pondrías toda la lógica de tu juego.
         run = True
         while run:
             self.reloj.tick(Constantes.FPS)

@@ -1,28 +1,29 @@
 import pygame
-import sys  # Necesario para salir del programa
+import sys
 
-# Definir colores y fuente
-COLOR_FONDO_MENU = (0, 0, 0)  # Negro
-COLOR_BOTON = (100, 100, 255)  # Azul
-COLOR_BOTON_HOVER = (150, 150, 255)  # Azul más claro
-COLOR_TEXTO = (255, 255, 255)  # Blanco
-fuente_menu = pygame.font.Font(None, 50)
-
-# Configuración de la ventana
+# Configuración básica
 ANCHO_VENTANA = 800
 ALTO_VENTANA = 600
+
+COLOR_FONDO_MENU = (0, 0, 0)
+COLOR_BOTON = (100, 100, 255)
+COLOR_BOTON_HOVER = (150, 150, 255)
+COLOR_TEXTO = (255, 255, 255)
+
+# Inicializar Pygame
+pygame.init()
 ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA))
+pygame.display.set_caption("ASTRO SLAYER")
+fuente_menu = pygame.font.Font(None, 50)
 
-
-# Función para dibujar botones en el menú
+# Función para dibujar un botón
 def dibujar_boton(ventana, texto, x, y, ancho, alto, color):
     pygame.draw.rect(ventana, color, (x, y, ancho, alto))
     texto_renderizado = fuente_menu.render(texto, True, COLOR_TEXTO)
     texto_rect = texto_renderizado.get_rect(center=(x + ancho // 2, y + alto // 2))
     ventana.blit(texto_renderizado, texto_rect)
 
-
-# Función para el menú principal
+# Menú principal
 def menu_principal():
     boton_jugar = pygame.Rect(300, 200, 200, 50)  # Botón "Jugar"
     boton_salir = pygame.Rect(300, 300, 200, 50)  # Botón "Salir"
@@ -30,8 +31,10 @@ def menu_principal():
     while True:
         ventana.fill(COLOR_FONDO_MENU)
 
-        # Detectar si el mouse está sobre un botón
+        # Obtener posición del mouse
         mouse_pos = pygame.mouse.get_pos()
+
+        # Dibujar botones
         if boton_jugar.collidepoint(mouse_pos):
             dibujar_boton(ventana, "Jugar", 300, 200, 200, 50, COLOR_BOTON_HOVER)
         else:
@@ -42,7 +45,7 @@ def menu_principal():
         else:
             dibujar_boton(ventana, "Salir", 300, 300, 200, 50, COLOR_BOTON)
 
-        # Eventos del menú
+        # Manejo de eventos
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -54,18 +57,24 @@ def menu_principal():
                     pygame.quit()
                     sys.exit()
 
-        pygame.display.update()  # Actualizar la pantalla
+        pygame.display.update()
 
+# Juego principal
+def juego():
+    run = True
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+        ventana.fill((0, 0, 0))  # Color del fondo del juego
+        pygame.display.update()
 
-# Función principal para el juego
+# Función principal
 def main():
-    pygame.init()
-    pygame.display.set_caption("ASTRO SLAYER")
-
-    # Mostrar el menú principal
     opcion = menu_principal()
-
-    # Si el usuario selecciona "Jugar", iniciamos el juego
     if opcion == "Jugar":
-        print("Inicia el juego")
-        # Aquí va el bucle principal del juego o la lógica específica
+        juego()
+
+# Iniciar el programa
+if __name__ == "__main__":
+    main()

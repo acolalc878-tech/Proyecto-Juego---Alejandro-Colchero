@@ -1,5 +1,7 @@
 import pygame
+
 from Recursos import IMAGEN_BALA, balas
+
 
 class Bala(pygame.sprite.Sprite):
     def __init__(self, x, y, direccion):
@@ -15,7 +17,7 @@ class Bala(pygame.sprite.Sprite):
         # Agregar al grupo de balas automáticamente
         balas.add(self)
 
-    # Función para actualizar la posicion de la bala
+    # Función para actualizar la posición de la bala
     def update(self, enemigos):  # Pasamos enemigos como argumento
         # Actualizamos la posición según la dirección
         if self.direccion == "derecha":

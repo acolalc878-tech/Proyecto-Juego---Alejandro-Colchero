@@ -9,27 +9,39 @@ class MenuPrincipal:
         self.boton_jugar = None
         self.boton_salir = None
 
-        self.fondo = pygame.image.load("assets//images//fondo//fondo_menu_principal.jpg")
-        self.fondo = pygame.transform.scale(self.fondo, (Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA))
+        # Cargar la imagen de fondo
+        try:
+            self.fondo = pygame.image.load("assets/images/fondo/fondo_menu_principal.jpg")
+            self.fondo = pygame.transform.scale(self.fondo, (Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA))
+        except pygame.error as e:
+            print(f"Error al cargar el fondo del menú: {e}")
+            self.fondo = None
 
-    def detener_musica(self):
-        pygame.mixer.music.stop()
+        # Cargar música del menú
+        try:
+            pygame.mixer.music.load("assets/music/musica_menu_principal.mp3")
+            pygame.mixer.music.set_volume(0.5)  # Volumen ajustado
+        except pygame.error as e:
+            print(f"Error al cargar la música del menú: {e}")
 
     def iniciar_musica(self):
         pygame.mixer.music.play(-1)  # Reproducir en bucle
 
+    def detener_musica(self):
+        pygame.mixer.music.stop()
+
     def mostrar(self):
-        # Dibujamos el fondo
+        # Dibujar el fondo
         if self.fondo:
             self.ventana.blit(self.fondo, (0, 0))
         else:
-            self.ventana.fill((0, 0, 0))
+            self.ventana.fill((0, 0, 0))  # Fondo negro si no se carga la imagen
 
-        # Colores
+        # Colores personalizados
         color_titulo = (135, 206, 250)  # Azul cielo
         color_boton_normal = (70, 130, 180)  # Azul acero
         color_boton_hover = (100, 149, 237)  # Azul claro
-        color_texto = (255, 255, 255)  # Blanco para el texto de los botones
+        color_texto = (255, 255, 255)  # Blanco
 
         # Texto del menú
         texto_menu = self.fuente.render("ASTRO SLAYER", True, color_titulo)
