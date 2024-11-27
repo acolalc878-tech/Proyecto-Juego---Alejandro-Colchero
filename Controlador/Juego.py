@@ -1,6 +1,5 @@
 import pygame
 from Controlador import Constantes
-from Vista.Principal import ventana
 
 class Juego:
     def __init__(self, ventana):

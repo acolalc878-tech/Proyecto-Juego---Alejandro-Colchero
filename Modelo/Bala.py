@@ -18,7 +18,7 @@ class Bala(pygame.sprite.Sprite):
         balas.add(self)
 
     # Función para actualizar la posición de la bala
-    def update(self, enemigos):  # Pasamos enemigos como argumento
+    def mover(self, enemigos):  # Pasamos enemigos como argumento
         # Actualizamos la posición según la dirección
         if self.direccion == "derecha":
             self.rect.x += 10  # Aumentar la posición en x para mover hacia la derecha
@@ -34,3 +34,7 @@ class Bala(pygame.sprite.Sprite):
             if self.rect.colliderect(enemigo.rect):
                 self.kill()  # Destruir la bala si colisiona con un enemigo
                 enemigo.destruir()
+
+    def dibujar(self, ventana):
+        # Dibuja la bala en la ventana
+        ventana.blit(self.image, self.rect)

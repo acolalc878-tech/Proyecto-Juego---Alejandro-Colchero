@@ -1,6 +1,7 @@
 import random
 
 import pygame
+
 from Controlador import Constantes
 from Modelo.Bala import Bala
 from Modelo.Enemigo import Enemigo
@@ -32,6 +33,7 @@ def cargar_animaciones():
     animacion_disparo_movimiento = [
         escalar_imagen(pygame.image.load(f"assets//images//armas//player-run-shoott{i}.png"),
                        Constantes.ESCALA_PERSONAJE) for i in range(6)]
+
     return animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento
 
 
@@ -51,8 +53,7 @@ bala = Bala(jugador.rect.right, jugador.rect.centery, "derecha")
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
-
-# Cargar animaciones de los enemigos
+# Cargar animaciones del primer enemigo
 def carga_animacion_enemigo_1():
     animacion_movimiento_enemigo = [
         escalar_imagen(pygame.image.load(f"assets//images//character//enemies//cangrejo//crab-walk{i}.png"),
@@ -65,7 +66,7 @@ animacion_movimiento_enemigo = carga_animacion_enemigo_1()
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
-# Cargar animaciones enemigo 2
+# Cargar animaciones del segundo enemigo
 def carga_animacion_enemigo_2():
     animacion_movimiento_enemigo_2 = [
         escalar_imagen(pygame.image.load(f"assets//images//character//enemies//ojo volador//fly-eye{i}.png"),
@@ -115,7 +116,7 @@ musica_menu()
 # Función para cargar el fondo
 def cargar_fondo():
     try:
-        fondo = pygame.image.load("assets/images/fondo/suelo-astroslayer.jpg")  # Cambia esta ruta si es necesario
+        fondo = pygame.image.load("assets/images/fondo/suelo-astroslayer.jpg").convert() # Cambia esta ruta si es necesario
         fondo = pygame.transform.scale(fondo, (
         Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA))
         print("Fondo cargado correctamente")
@@ -146,6 +147,8 @@ def manejar_eventos():
                 mover_arriba = True
             if event.key == pygame.K_s:
                 mover_abajo = True
+            if event.key == pygame.K_e:
+                jugador.disparar()
             if event.key == pygame.K_r:  # Reiniciar el juego con la tecla R
                 reiniciar_juego()
                 return True
@@ -166,7 +169,7 @@ def manejar_eventos():
 def reiniciar_juego():
     global jugador, enemigos
     jugador = Personaje(350, 320, animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento)
-    enemigos = pygame.sprite.Group()  # Reiniciamos el grupo de enemigos
+    enemigos = pygame.sprite.Group()
     print("Juego reiniciado")
 
 
@@ -240,18 +243,18 @@ def colisiones(self, enemigos):
 #--------------------------------------------------------------------------------------------------------------------------------
 def bucle_juego():
     reloj = pygame.time.Clock()
-    corriendo = True
 
     # Aquí puedes inicializar el jugador y los enemigos
     jugador = Personaje(350, 320, animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento)
     enemigos = []  # Inicializa la lista de enemigos
 
+    corriendo = True
     while corriendo:
         ventana.fill((0, 0, 0))  # Fondo negro
         ventana.blit(fondo, (0, 0))  # Fondo del juego
 
         # Manejar eventos (movimiento, disparo, etc.)
-        if not manejar_eventos():  # Asegúrate de que manejar_eventos devuelva False si se cierra el juego
+        if not manejar_eventos():
             corriendo = False
 
         generar_enemigos(enemigos)
@@ -271,71 +274,84 @@ def bucle_juego():
 #--------------------------------------------------------------------------------------------------------------------------------
 def bucle_juego_inicio(jugador):
     reloj = pygame.time.Clock()
-    corriendo = True
-    enemigos = pygame.sprite.Group()  # Usar un grupo de sprites para los enemigos
+    enemigos = pygame.sprite.Group()  # Crear un grupo para los enemigos
+    ejecutando = True
 
-    while corriendo:
+    while ejecutando:
         # Manejar eventos
-        if not manejar_eventos():
-            corriendo = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                ejecutando = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_e:  # Disparo con tecla 'E'
+                    jugador.disparar()
 
+        # Manejar teclas de movimiento
         keys = pygame.key.get_pressed()
         delta_x = delta_y = 0
+        jugador.en_movimiento = False
+        jugador.disparando = False
 
-        if keys[pygame.K_LEFT]:
-            delta_x = -jugador.velocidad
+        if keys[pygame.K_a]:
+            delta_x = -5
+            jugador.en_movimiento = True
             jugador.direccion = "izquierda"
-        elif keys[pygame.K_RIGHT]:
-            delta_x = jugador.velocidad
+        elif keys[pygame.K_d]:
+            delta_x = 5
+            jugador.en_movimiento = True
             jugador.direccion = "derecha"
-        else:
-            jugador.direccion = "quieto"
 
-        if keys[pygame.K_UP]:
-            delta_y = -jugador.velocidad
-        elif keys[pygame.K_DOWN]:
-            delta_y = jugador.velocidad
+        if keys[pygame.K_w]:
+            delta_y = -5
+            jugador.en_movimiento = True
+        elif keys[pygame.K_s]:
+            delta_y = 5
+            jugador.en_movimiento = True
 
+        if keys[pygame.K_e]:
+            jugador.disparando = True
 
-        jugador.mover(delta_x, delta_y)  # Mover al jugador
-        jugador.actualizar_animacion()  # Actualizar animaciones del jugador
-        ventana.blit(jugador.image, jugador.rect)
+        # Actualizar estado del jugador
+        jugador.mover(delta_x, delta_y)
+        jugador.actualizar_animacion()
 
-        # Generar y mover enemigos
+        # Generar enemigos
         generar_enemigos(enemigos)
 
-        # Detectar colisiones
-        jugador.colisiones(enemigos)
-        if jugador.muerto:
-            pantalla_game_over(ventana)  # Muestra la pantalla de Game Over
-            reiniciar_juego()  # Llama a tu función para reiniciar el juego
-            break
-        pygame.display.update()
+        # Actualizar pantalla
+        ventana.blit(fondo, (0, 0))  # Dibujar fondo
 
-        # Actualizar la pantalla
-        ventana.fill((0, 0, 0))
-        ventana.blit(fondo, (0, 0))
-
-        # Dibujar y actualizar enemigos
+        # Dibujar enemigos
         for enemigo in enemigos:
             enemigo.actualizar()
             enemigo.actualizar_animacion()
             ventana.blit(enemigo.image, enemigo.rect)
 
-        # Dibujar al jugador
+        # Dibujar jugador
         jugador.draw(ventana)
 
+        # Dibujar balas y moverlas
+        for bala in jugador.balas:
+            bala.mover(enemigos)
+            bala.dibujar(ventana)
+
+        # Detectar colisiones
+        jugador.colisiones(enemigos)
+        if jugador.muerto:
+            pantalla_game_over(ventana)  # Muestra la pantalla de Game Over
+            reiniciar_juego()  # Reiniciar el juego
+            break
+
         pygame.display.update()
-        reloj.tick(60)
+        reloj.tick(60)  # Limitar FPS a 60
 
 
 #--------------------------------------------------------------------------------------------------------------------------------
 def bucle_menu():
     corriendo = True
-    musica_menu()  # Iniciar música del menú
+    musica_menu()  # Iniciar la música del menú
 
     while corriendo:
-        ventana.fill((0, 0, 0))  # Fondo negro para el menú
         menu.mostrar()  # Mostrar el menú principal
         pygame.display.update()  # Actualizar la ventana
 
@@ -350,7 +366,13 @@ def bucle_menu():
                 musica_juego_fondo()  # Reproducir música del juego
 
                 # Crear el jugador en la posición inicial
-                jugador = Personaje(350, 320, animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento)  # Asegúrate de que la clase Personaje esté definida
+                jugador = Personaje(
+                    350, 320,
+                    animacion_quieto,
+                    animacion_movimiento,
+                    animacion_disparo_quieto,
+                    animacion_disparo_movimiento
+                )
                 bucle_juego_inicio(jugador)  # Iniciar el bucle del juego
 
 bucle_menu()
