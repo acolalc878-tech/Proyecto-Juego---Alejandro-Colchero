@@ -85,7 +85,7 @@ class Personaje:
         if self.muerto:
             return
 
-            # Volteamos la imagen si 'voltear' es True
+        # Volteamos la imagen si 'voltear' es True
         if self.voltear:
             voltear_imagen = pygame.transform.flip(self.image, True, False)
             ventana.blit(voltear_imagen, self.rect)
@@ -130,7 +130,7 @@ class Personaje:
                 puntuacion += 10
                 bala.kill()
 
-    # --------------------------------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------------------------------
 
     def recibir_danio(self):
         self.vida -= 1

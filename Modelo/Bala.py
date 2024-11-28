@@ -1,6 +1,7 @@
 import pygame
 
 from Recursos import IMAGEN_BALA, balas
+from Controlador import Config
 
 class Bala(pygame.sprite.Sprite):
     def __init__(self, x, y, direccion):
@@ -31,17 +32,16 @@ class Bala(pygame.sprite.Sprite):
         # Gestionar las colisiones con los enemigos
         for enemigo in enemigos:
             if self.rect.colliderect(enemigo.rect):
-                self.kill()  # Destruimos la bala si colisiona con un enemigo
-                enemigo.destruir()
+                enemigos.remove(enemigo)
+                self.kill()
+                self.reproducir_impacto()
+                Config.puntuacion += 10
+                break
 
     def dibujar(self, ventana):
         # Dibuja la bala en la ventana
         ventana.blit(self.image, self.rect)
 
-    def colisiones(self, enemigos):
-        global puntuacion
-
-        for bala in balas:
-            if pygame.sprite.spritecollide(bala, enemigos, True):  # Si la bala colisiona con un enemigo
-                puntuacion += 10  # Aumentamos la puntuación en 10
-                bala.kill()  # Destruir la bala tras la colisión
+    def reproducir_impacto(self):
+        sonido_impacto = pygame.mixer.Sound("assets//music//impacto-bala.mp3")
+        sonido_impacto.play()

@@ -1,13 +1,13 @@
 import random
-
 import pygame
 
 from Controlador import Constantes
 from Modelo.Bala import Bala
 from Modelo.Enemigo import Enemigo
 from Modelo.Personaje import Personaje
-from Recursos import escalar_imagen, balas
+from Recursos import escalar_imagen
 from Vista.MenuPrincipal import MenuPrincipal
+from Controlador.Config import puntuacion
 
 # Inicializar Pygame
 pygame.init()
@@ -18,8 +18,6 @@ pygame.display.set_caption("ASTRO SLAYER")
 
 # Lista de enemigos
 enemigos = []
-
-puntuacion = 0
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
@@ -112,16 +110,6 @@ def musica_juego_fondo():
 menu = MenuPrincipal(ventana)
 
 musica_menu()
-#--------------------------------------------------------------------------------------------------------------------------------
-
-def impacto_bala():
-    try:
-        pygame.mixer.Sound("assets/music/impacto-bala.mp3")
-        print("El impacto se ha escuchado")
-    except pygame.error as e:
-        print(f"Error al cargar el sonido de impacto: {e}")
-
-impacto_bala()
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
@@ -279,57 +267,26 @@ def generar_enemigos(enemigos):
 #--------------------------------------------------------------------------------------------------------------------------------
 
 def colisiones(self, enemigos):
+    global puntuacion  # Asegúrate de que la puntuación es global
     for enemigo in enemigos:
         if self.rect.colliderect(enemigo.rect):
             self.game_over = True
-            break
+            break  # Termina el bucle si el jugador choca con un enemigo
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
-def dibujar_puntuacion(ventana, puntuacion):
+def dibujar_puntuacion(ventana):
+    from Controlador.Config import puntuacion
 
-    fuente = pygame.font.Font("fuentes//Super Pixel Personal Use.ttf", 30)
+    fuente = pygame.font.Font("fuentes//pixel-comic-sans-undertale-sans-font.ttf", 50)
 
-    texto_puntuacion = fuente.render(f"Puntuación: {puntuacion}", True, (255, 255, 255))
+    texto = fuente.render(f"Puntuacion: {puntuacion}", True, (255, 255, 255))
 
-    ventana.blit(texto_puntuacion, (ventana.get_width() - texto_puntuacion.get_width() - 10, 10))
+    ventana.blit(texto, (ventana.get_width() - texto.get_width() - 10, 10))
 
-
-#--------------------------------------------------------------------------------------------------------------------------------
-def bucle_juego():
-    reloj = pygame.time.Clock()
-
-    # Aquí puedes inicializar el jugador y los enemigos
-    jugador = Personaje(350, 320, animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento)
-    enemigos = []  # Inicializa la lista de enemigos
-
-    corriendo = True
-    while corriendo:
-        ventana.fill((0, 0, 0))  # Fondo negro
-        ventana.blit(fondo, (0, 0))  # Fondo del juego
-
-        # Manejar eventos (movimiento, disparo, etc.)
-        if not manejar_eventos():
-            corriendo = False
-
-        generar_enemigos(enemigos)
-
-        # Dibuja los enemigos
-        for enemigo in enemigos:
-            ventana.blit(enemigo.image, enemigo.rect)
-
-        # Dibuja al jugador
-        ventana.blit(jugador.image, jugador.rect)
-
-        # Actualizar pantalla
-        pygame.display.update()
-
-        reloj.tick(60)  # Limitar FPS a 60
 
 #--------------------------------------------------------------------------------------------------------------------------------
 def bucle_juego_inicio(jugador):
-    global puntuacion
-
     reloj = pygame.time.Clock()
     enemigos = pygame.sprite.Group()
 
@@ -350,15 +307,17 @@ def bucle_juego_inicio(jugador):
         jugador.en_movimiento = False
         jugador.disparando = False
 
+        # Mover hacia la izquierda
         if keys[pygame.K_a]:
             delta_x = -Constantes.VELOCIDAD_PERSONAJE
             jugador.en_movimiento = True
-            jugador.voltear = True  # Mover hacia la izquierda
+            jugador.voltear = True
 
+        # Mover hacia la derecha
         if keys[pygame.K_d]:
             delta_x = Constantes.VELOCIDAD_PERSONAJE
             jugador.en_movimiento = True
-            jugador.voltear = False  # Mover hacia la derecha
+            jugador.voltear = False
 
         if keys[pygame.K_w]:
             delta_y = -Constantes.VELOCIDAD_PERSONAJE
@@ -378,8 +337,9 @@ def bucle_juego_inicio(jugador):
         # Generar enemigos
         generar_enemigos(enemigos)
 
-        # Detectar colisiones (esto aumentará la puntuación)
-        jugador.colisiones(enemigos)
+        # Detectar colisiones entre balas y enemigos
+        for bala in jugador.balas:
+            bala.mover(enemigos)  # Aquí pasas solo los enemigos
 
         # Dibujar fondo y enemigos
         ventana.blit(fondo, (0, 0))
@@ -391,19 +351,21 @@ def bucle_juego_inicio(jugador):
         # Dibujar jugador
         jugador.draw(ventana)
 
-        # Dibujar balas
+        # Dibujamos la bala en la ventana
         for bala in jugador.balas:
-            bala.mover(enemigos)
             bala.dibujar(ventana)
+
+        # Usamos el metodo de colisiones para que el jugador pueda tener colisión con los enemigos
+        jugador.colisiones(enemigos)
+
+        # Llamamos al metodo para dibujar la puntuacion en la ventana
+        dibujar_puntuacion(ventana)
 
         # Detectar si el jugador muere
         if jugador.muerto:
             pantalla_game_over(ventana)
             reiniciar_juego()
             break
-
-        # Dibujar la puntuación
-        dibujar_puntuacion(ventana, puntuacion)
 
         # Actualizar la pantalla
         pygame.display.update()
