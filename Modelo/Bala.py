@@ -17,6 +17,8 @@ class Bala(pygame.sprite.Sprite):
         # Agregar al grupo de balas automáticamente
         balas.add(self)
 
+# --------------------------------------------------------------------------------------------------------------------------------
+
     # Función para actualizar la posición de la bala
     def mover(self, enemigos):
         # Actualizamos la posición según la dirección
@@ -38,10 +40,14 @@ class Bala(pygame.sprite.Sprite):
                 Config.puntuacion += 10
                 break
 
+# --------------------------------------------------------------------------------------------------------------------------------
+
     def dibujar(self, ventana):
         # Dibuja la bala en la ventana
         ventana.blit(self.image, self.rect)
 
+# --------------------------------------------------------------------------------------------------------------------------------
+
     def reproducir_impacto(self):
-        sonido_impacto = pygame.mixer.Sound("assets//music//impacto-bala.mp3")
+        sonido_impacto = pygame.mixer.Sound("assets//music//disparo-plasma.mp3")
         sonido_impacto.play()

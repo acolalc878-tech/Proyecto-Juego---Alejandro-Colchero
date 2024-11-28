@@ -2,6 +2,7 @@ import pygame
 
 from Controlador import Constantes
 from Modelo.Bala import Bala
+from Controlador import Config
 
 
 class Personaje:
@@ -15,13 +16,17 @@ class Personaje:
         self.image = self.animacion_quieto[0]
         self.rect = self.image.get_rect(center=(x, y))
         self.rect.center = (x, y)
+        self.vidas = 3
+        self.corazon_imagen = pygame.image.load("assets/images/character/player/CORAZON.png") # Dibujamos los corazones
+        self.corazon_imagen = pygame.transform.scale(self.corazon_imagen, (50, 50))  # Hacemos los corazones más pequeños
+        self.corazones = [self.corazon_imagen for i in range(self.vidas)] # Bucle para que lea que solo tenemos 3 vidas
+
 
         # Estados
         self.en_movimiento = False
         self.disparando = False
         self.voltear = False  # Controla si la imagen debe voltear horizontalmente
         self.muerto = False
-        self.vida = 3
         self.direccion = "derecha"  # Dirección inicial: "derecha" o "izquierda"
 
         # Índices y tiempos para animaciones
@@ -33,6 +38,21 @@ class Personaje:
         # Balas
         self.balas = pygame.sprite.Group()
         self.puntos = 0
+
+# --------------------------------------------------------------------------------------------------------------------------------
+
+    def perder_vida(self):
+        if self.vidas > 0:
+            self.vidas -= 1 # Así reducimos las vidas
+            print(f"Vidas restantes: {self.vidas}")
+        if self.vidas == 0:
+            self.muerto = True
+
+# --------------------------------------------------------------------------------------------------------------------------------
+
+    def draw_corazones(self, ventana):
+        for i in range(self.vidas):
+            ventana.blit(self.corazones[i], (10 + i * 40, 10)) # Para dejar espacio entre corazones
 
 # --------------------------------------------------------------------------------------------------------------------------------
 
@@ -117,8 +137,8 @@ class Personaje:
 
         for enemigo in enemigos:
             if self.rect.colliderect(enemigo.rect):  # Verifica si el jugador toca al enemigo
-                self.vida -= 1  # El jugador pierde vida al tocar al enemigo
-                if self.vida <= 0:
+                self.vidas -= 1  # El jugador pierde vida al tocar al enemigo
+                if self.vidas <= 0:
                     self.muerto = True  # El jugador muere después de 3 colisiones
                     break  # Termina el ciclo de colisiones si el jugador muere
 
@@ -127,7 +147,7 @@ class Personaje:
         for bala in self.balas:
             enemigos_colisionados = pygame.sprite.spritecollide(bala, enemigos, True)
             if enemigos_colisionados:
-                puntuacion += 10
+                Config.puntuacion += 10
                 bala.kill()
 
 # --------------------------------------------------------------------------------------------------------------------------------

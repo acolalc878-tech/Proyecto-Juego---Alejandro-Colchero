@@ -1,4 +1,5 @@
 import random
+
 import pygame
 
 from Controlador import Constantes
@@ -7,7 +8,7 @@ from Modelo.Enemigo import Enemigo
 from Modelo.Personaje import Personaje
 from Recursos import escalar_imagen
 from Vista.MenuPrincipal import MenuPrincipal
-from Controlador.Config import puntuacion
+
 
 # Inicializar Pygame
 pygame.init()
@@ -206,6 +207,7 @@ def reiniciar_juego():
 
 
 #--------------------------------------------------------------------------------------------------------------------------------
+
 def pantalla_game_over(ventana):
     fuente = pygame.font.Font("fuentes//Pixel Times.ttf", 70)
 
@@ -263,7 +265,6 @@ def generar_enemigos(enemigos):
         enemigos.add(enemigo_derecha)
 
 
-
 #--------------------------------------------------------------------------------------------------------------------------------
 
 def colisiones(self, enemigos):
@@ -286,6 +287,8 @@ def dibujar_puntuacion(ventana):
 
 
 #--------------------------------------------------------------------------------------------------------------------------------
+
+# Bucle que hace que se inicie el juego
 def bucle_juego_inicio(jugador):
     reloj = pygame.time.Clock()
     enemigos = pygame.sprite.Group()
@@ -361,6 +364,8 @@ def bucle_juego_inicio(jugador):
         # Llamamos al metodo para dibujar la puntuacion en la ventana
         dibujar_puntuacion(ventana)
 
+        jugador.draw_corazones(ventana)
+
         # Detectar si el jugador muere
         if jugador.muerto:
             pantalla_game_over(ventana)
@@ -373,13 +378,15 @@ def bucle_juego_inicio(jugador):
 
 
 #--------------------------------------------------------------------------------------------------------------------------------
+
+# Bucle que hace que se inicie el menú
 def bucle_menu():
     corriendo = True
-    musica_menu()  # Iniciar la música del menú
+    musica_menu()  # Aquí iniciamos la música del menú principal
 
     while corriendo:
-        menu.mostrar()  # Mostrar el menú principal
-        pygame.display.update()  # Actualizar la ventana
+        menu.mostrar()  # Mostramos el menú principal
+        pygame.display.update()  # Actualizamos la ventana
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -401,4 +408,4 @@ def bucle_menu():
                 )
                 bucle_juego_inicio(jugador)  # Iniciar el bucle del juego
 
-bucle_menu()
+bucle_menu() # Mostramos el menu
