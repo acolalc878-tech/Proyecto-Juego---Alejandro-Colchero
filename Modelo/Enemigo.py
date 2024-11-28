@@ -51,6 +51,7 @@ class Enemigo(pygame.sprite.Sprite):
         # Colisión con una bala
         if self.rect.colliderect(bala.rect):
             self.recibir_dano()  # El enemigo recibe daño
+
             bala.kill()  # La bala se destruye después de la colisión
             return True
         return False

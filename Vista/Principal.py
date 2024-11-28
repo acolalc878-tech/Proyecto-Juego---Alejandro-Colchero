@@ -19,6 +19,8 @@ pygame.display.set_caption("ASTRO SLAYER")
 # Lista de enemigos
 enemigos = []
 
+puntuacion = 0
+
 #--------------------------------------------------------------------------------------------------------------------------------
 
 # Cargar animaciones del jugador
@@ -110,6 +112,16 @@ def musica_juego_fondo():
 menu = MenuPrincipal(ventana)
 
 musica_menu()
+#--------------------------------------------------------------------------------------------------------------------------------
+
+def impacto_bala():
+    try:
+        pygame.mixer.Sound("assets/music/impacto-bala.mp3")
+        print("El impacto se ha escuchado")
+    except pygame.error as e:
+        print(f"Error al cargar el sonido de impacto: {e}")
+
+impacto_bala()
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
@@ -132,37 +144,69 @@ fondo = cargar_fondo()
 
 # Función para manejar los eventos
 def manejar_eventos():
-    global mover_izquierda, mover_derecha, mover_arriba, mover_abajo, run, jugador, enemigos
+    global mover_izquierda, mover_derecha, mover_arriba, mover_abajo
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_a:
-                mover_izquierda = True
-                jugador.direccion = "izquierda"
-            if event.key == pygame.K_d:
-                mover_derecha = True
-                jugador.direccion = "derecha"
-            if event.key == pygame.K_w:
-                mover_arriba = True
-            if event.key == pygame.K_s:
-                mover_abajo = True
-            if event.key == pygame.K_e:
-                jugador.disparar()
-            if event.key == pygame.K_r:  # Reiniciar el juego con la tecla R
-                reiniciar_juego()
-                return True
 
+        # Procesamos las teclas que se presionan
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_a:  # Mover a la izquierda
+                mover_izquierda = True
+                if jugador.direccion != "izquierda":  # Solo cambia si no está mirando a la izquierda
+                    jugador.direccion = "izquierda"  # Actualiza la dirección a izquierda
+            if event.key == pygame.K_d:  # Mover a la derecha
+                mover_derecha = True
+                if jugador.direccion != "derecha":  # Solo cambia si no está mirando a la derecha
+                    jugador.direccion = "derecha"  # Actualiza la dirección a derecha
+            if event.key == pygame.K_w:  # Mover hacia arriba
+                mover_arriba = True
+            if event.key == pygame.K_s:  # Mover hacia abajo
+                mover_abajo = True
+            if event.key == pygame.K_e:  # Disparar
+                jugador.disparar()
+
+        # Procesamos cuando se suelta una tecla
         if event.type == pygame.KEYUP:
-            if event.key == pygame.K_a:
+            if event.key == pygame.K_a:  # Dejar de mover a la izquierda
                 mover_izquierda = False
-            if event.key == pygame.K_d:
+            if event.key == pygame.K_d:  # Dejar de mover a la derecha
                 mover_derecha = False
-            if event.key == pygame.K_w:
+            if event.key == pygame.K_w:  # Dejar de mover hacia arriba
                 mover_arriba = False
-            if event.key == pygame.K_s:
+            if event.key == pygame.K_s:  # Dejar de mover hacia abajo
                 mover_abajo = False
+
+    # Manejo del movimiento después de los eventos
+    delta_x = delta_y = 0
+    if mover_izquierda:
+        delta_x = -Constantes.VELOCIDAD_PERSONAJE
+    if mover_derecha:
+        delta_x = Constantes.VELOCIDAD_PERSONAJE
+    if mover_arriba:
+        delta_y = -Constantes.VELOCIDAD_PERSONAJE
+    if mover_abajo:
+        delta_y = Constantes.VELOCIDAD_PERSONAJE
+
+    # Actualizamos el estado de movimiento
+    if delta_x != 0 or delta_y != 0:
+        jugador.en_movimiento = True
+    else:
+        jugador.en_movimiento = False
+
+    # Si el jugador se mueve horizontalmente, se actualiza la dirección
+    if delta_x != 0:
+        # Solo actualizamos la dirección si nos movemos horizontalmente
+        if delta_x < 0:
+            jugador.direccion = "izquierda"
+        elif delta_x > 0:
+            jugador.direccion = "derecha"
+
+    # Mover al jugador
+    jugador.mover(delta_x, delta_y)
+
     return True
+
 
 #--------------------------------------------------------------------------------------------------------------------------------
 
@@ -241,6 +285,17 @@ def colisiones(self, enemigos):
             break
 
 #--------------------------------------------------------------------------------------------------------------------------------
+
+def dibujar_puntuacion(ventana, puntuacion):
+
+    fuente = pygame.font.Font("fuentes//Super Pixel Personal Use.ttf", 30)
+
+    texto_puntuacion = fuente.render(f"Puntuación: {puntuacion}", True, (255, 255, 255))
+
+    ventana.blit(texto_puntuacion, (ventana.get_width() - texto_puntuacion.get_width() - 10, 10))
+
+
+#--------------------------------------------------------------------------------------------------------------------------------
 def bucle_juego():
     reloj = pygame.time.Clock()
 
@@ -273,8 +328,11 @@ def bucle_juego():
 
 #--------------------------------------------------------------------------------------------------------------------------------
 def bucle_juego_inicio(jugador):
+    global puntuacion
+
     reloj = pygame.time.Clock()
-    enemigos = pygame.sprite.Group()  # Crear un grupo para los enemigos
+    enemigos = pygame.sprite.Group()
+
     ejecutando = True
 
     while ejecutando:
@@ -286,26 +344,28 @@ def bucle_juego_inicio(jugador):
                 if event.key == pygame.K_e:  # Disparo con tecla 'E'
                     jugador.disparar()
 
-        # Manejar teclas de movimiento
+        # Mover y actualizar jugador
         keys = pygame.key.get_pressed()
         delta_x = delta_y = 0
         jugador.en_movimiento = False
         jugador.disparando = False
 
         if keys[pygame.K_a]:
-            delta_x = -5
+            delta_x = -Constantes.VELOCIDAD_PERSONAJE
             jugador.en_movimiento = True
-            jugador.direccion = "izquierda"
-        elif keys[pygame.K_d]:
-            delta_x = 5
+            jugador.voltear = True  # Mover hacia la izquierda
+
+        if keys[pygame.K_d]:
+            delta_x = Constantes.VELOCIDAD_PERSONAJE
             jugador.en_movimiento = True
-            jugador.direccion = "derecha"
+            jugador.voltear = False  # Mover hacia la derecha
 
         if keys[pygame.K_w]:
-            delta_y = -5
+            delta_y = -Constantes.VELOCIDAD_PERSONAJE
             jugador.en_movimiento = True
-        elif keys[pygame.K_s]:
-            delta_y = 5
+
+        if keys[pygame.K_s]:
+            delta_y = Constantes.VELOCIDAD_PERSONAJE
             jugador.en_movimiento = True
 
         if keys[pygame.K_e]:
@@ -318,10 +378,11 @@ def bucle_juego_inicio(jugador):
         # Generar enemigos
         generar_enemigos(enemigos)
 
-        # Actualizar pantalla
-        ventana.blit(fondo, (0, 0))  # Dibujar fondo
+        # Detectar colisiones (esto aumentará la puntuación)
+        jugador.colisiones(enemigos)
 
-        # Dibujar enemigos
+        # Dibujar fondo y enemigos
+        ventana.blit(fondo, (0, 0))
         for enemigo in enemigos:
             enemigo.actualizar()
             enemigo.actualizar_animacion()
@@ -330,18 +391,21 @@ def bucle_juego_inicio(jugador):
         # Dibujar jugador
         jugador.draw(ventana)
 
-        # Dibujar balas y moverlas
+        # Dibujar balas
         for bala in jugador.balas:
             bala.mover(enemigos)
             bala.dibujar(ventana)
 
-        # Detectar colisiones
-        jugador.colisiones(enemigos)
+        # Detectar si el jugador muere
         if jugador.muerto:
-            pantalla_game_over(ventana)  # Muestra la pantalla de Game Over
-            reiniciar_juego()  # Reiniciar el juego
+            pantalla_game_over(ventana)
+            reiniciar_juego()
             break
 
+        # Dibujar la puntuación
+        dibujar_puntuacion(ventana, puntuacion)
+
+        # Actualizar la pantalla
         pygame.display.update()
         reloj.tick(60)  # Limitar FPS a 60
 

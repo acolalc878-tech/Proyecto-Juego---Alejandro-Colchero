@@ -11,7 +11,7 @@ class MenuPrincipal:
 
         # Cargar la imagen de fondo
         try:
-            self.fondo = pygame.image.load("assets/images/fondo/fondo_menu_principal.jpg")
+            self.fondo = pygame.image.load("assets/images/fondo/FONDO_JUEGO_MENU.png")
             self.fondo = pygame.transform.scale(self.fondo, (Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA))
         except pygame.error as e:
             print(f"Error al cargar el fondo del menú: {e}")
@@ -38,10 +38,10 @@ class MenuPrincipal:
             self.ventana.fill((0, 0, 0))  # Fondo negro si no se carga la imagen
 
         # Colores personalizados
-        color_titulo = (135, 206, 250)  # Azul cielo
-        color_boton_normal = (70, 130, 180)  # Azul acero
-        color_boton_hover = (100, 149, 237)  # Azul claro
-        color_texto = (255, 255, 255)  # Blanco
+        color_titulo = (229, 190, 1)
+        color_boton_normal = (255, 128, 0)
+        color_boton_hover = (100, 149, 237)
+        color_texto = (255, 255, 255)
 
         # Texto del menú
         texto_menu = self.fuente.render("ASTRO SLAYER", True, color_titulo)

@@ -2,7 +2,6 @@ import pygame
 
 from Recursos import IMAGEN_BALA, balas
 
-
 class Bala(pygame.sprite.Sprite):
     def __init__(self, x, y, direccion):
         super().__init__()  # Inicializa el sprite
@@ -18,23 +17,31 @@ class Bala(pygame.sprite.Sprite):
         balas.add(self)
 
     # Función para actualizar la posición de la bala
-    def mover(self, enemigos):  # Pasamos enemigos como argumento
+    def mover(self, enemigos):
         # Actualizamos la posición según la dirección
         if self.direccion == "derecha":
-            self.rect.x += 10  # Aumentar la posición en x para mover hacia la derecha
+            self.rect.x += 10
         elif self.direccion == "izquierda":
-            self.rect.x -= 10  # Reducir la posición en x para mover hacia la izquierda
+            self.rect.x -= 10
         elif self.direccion == "arriba":
-            self.rect.y -= 10  # Reducir la posición en y para mover hacia arriba
+            self.rect.y -= 10
         elif self.direccion == "abajo":
-            self.rect.y += 10  # Aumentar la posición en y para mover hacia abajo
+            self.rect.y += 10
 
         # Gestionar las colisiones con los enemigos
         for enemigo in enemigos:
             if self.rect.colliderect(enemigo.rect):
-                self.kill()  # Destruir la bala si colisiona con un enemigo
+                self.kill()  # Destruimos la bala si colisiona con un enemigo
                 enemigo.destruir()
 
     def dibujar(self, ventana):
         # Dibuja la bala en la ventana
         ventana.blit(self.image, self.rect)
+
+    def colisiones(self, enemigos):
+        global puntuacion
+
+        for bala in balas:
+            if pygame.sprite.spritecollide(bala, enemigos, True):  # Si la bala colisiona con un enemigo
+                puntuacion += 10  # Aumentamos la puntuación en 10
+                bala.kill()  # Destruir la bala tras la colisión

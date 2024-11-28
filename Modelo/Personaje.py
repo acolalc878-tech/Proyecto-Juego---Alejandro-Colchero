@@ -3,6 +3,7 @@ import pygame
 from Controlador import Constantes
 from Modelo.Bala import Bala
 
+
 class Personaje:
     def __init__(self, x, y, animacion_quieto, animacion_movimiento, animacion_disparo_quieto, animacion_disparo_movimiento):
         # Animaciones
@@ -11,27 +12,27 @@ class Personaje:
         self.animacion_disparo_quieto = animacion_disparo_quieto
         self.animacion_disparo_movimiento = animacion_disparo_movimiento
 
-        self.voltear = False  # Controla la dirección de la imagen (mirar a la izquierda o derecha)
-        self.frames_indice_movimiento = 0  # Índice para animación de movimiento
-        self.frames_indice_disparo = 0  # Índice para animación de disparo
+        self.image = self.animacion_quieto[0]
+        self.rect = self.image.get_rect(center=(x, y))
+        self.rect.center = (x, y)
+
+        # Estados
+        self.en_movimiento = False
+        self.disparando = False
+        self.voltear = False  # Controla si la imagen debe voltear horizontalmente
+        self.muerto = False
+        self.vida = 3
+        self.direccion = "derecha"  # Dirección inicial: "derecha" o "izquierda"
+
+        # Índices y tiempos para animaciones
+        self.frames_indice_movimiento = 0
+        self.frames_indice_disparo = 0
         self.actualizar_tiempo_movimiento = pygame.time.get_ticks()
         self.actualizar_tiempo_disparo = pygame.time.get_ticks()
 
-        # Inicializamos 'rect', que es donde se define la posición y tamaño del personaje
-        self.image = self.animacion_quieto[0]
-        self.rect = self.image.get_rect()  # Crea el rectángulo a partir de la imagen
-        self.rect.center = (x, y)  # Inicializa el centro del personaje en las coordenadas (x, y)
-
-        # Estados de movimiento y disparo
-        self.en_movimiento = False
-        self.disparando = False
-        self.vida = 3  # Vida del personaje
-        self.direccion = "derecha"
-
-        self.colisiones_con_enemigos = 0  # Contador de colisiones con enemigos
-        self.muerto = False  # Estado del personaje (si está muerto o no)
-
+        # Balas
         self.balas = pygame.sprite.Group()
+        self.puntos = 0
 
 # --------------------------------------------------------------------------------------------------------------------------------
 
@@ -39,52 +40,43 @@ class Personaje:
         self.rect.x += delta_x
         self.rect.y += delta_y
 
-        if delta_x < 0:
-            self.voltear = True
-            self.direccion = "izquierda"
-        elif delta_y > 0:
-            self.voltear = False
-            self.direccion = "derecha"
+        # Detectar dirección horizontal y actualizar el estado
+        if delta_x < 0:  # Moviéndose a la izquierda
+            if self.direccion != "izquierda":  # Cambiar dirección si es diferente
+                self.voltear = True
+                self.direccion = "izquierda"
+        elif delta_x > 0:  # Moviéndose a la derecha
+            if self.direccion != "derecha":  # Cambiar dirección si es diferente
+                self.voltear = False
+                self.direccion = "derecha"
 
-        # Evitar que el personaje salga de la pantalla
-        if self.rect.left < 0:
-            self.rect.left = 0
-        if self.rect.right > Constantes.ANCHO_VENTANA:
-            self.rect.right = Constantes.ANCHO_VENTANA
-        if self.rect.top < 0:
-            self.rect.top = 0
-        if self.rect.bottom > Constantes.ALTO_VENTANA:
-            self.rect.bottom = Constantes.ALTO_VENTANA
+        # Determinar si el personaje está en movimiento
+        self.en_movimiento = delta_x != 0 or delta_y != 0
 
-# --------------------------------------------------------------------------------------------------------------------------------
-
-    def cargar_animaciones(self):
-        # Debería retornar las animaciones cargadas
-        return self.animacion_disparo_movimiento
+        # Evitar que el personaje salga de los límites de la pantalla
+        self.rect.clamp_ip(pygame.Rect(0, 0, Constantes.ANCHO_VENTANA, Constantes.ALTO_VENTANA))
 
 # --------------------------------------------------------------------------------------------------------------------------------
 
     def actualizar_animacion(self):
         tiempo_actual = pygame.time.get_ticks()
 
-        if self.disparando:  # Si está disparando
-            if self.en_movimiento:  # Animación de disparo en movimiento
-                if tiempo_actual - self.actualizar_tiempo_disparo > 100:
-                    self.actualizar_tiempo_disparo = tiempo_actual
+        if self.disparando:  # Animación de disparo
+            if tiempo_actual - self.actualizar_tiempo_disparo > 100:  # Control de tiempo de animación
+                self.actualizar_tiempo_disparo = tiempo_actual
+                if self.en_movimiento:  # Disparo en movimiento
                     self.frames_indice_disparo = (self.frames_indice_disparo + 1) % len(
                         self.animacion_disparo_movimiento)
                     self.image = self.animacion_disparo_movimiento[self.frames_indice_disparo]
-            else:  # Animación de disparo quieto
-                if tiempo_actual - self.actualizar_tiempo_disparo > 100:
-                    self.actualizar_tiempo_disparo = tiempo_actual
+                else:  # Disparo quieto
                     self.frames_indice_disparo = (self.frames_indice_disparo + 1) % len(self.animacion_disparo_quieto)
                     self.image = self.animacion_disparo_quieto[self.frames_indice_disparo]
-        elif self.en_movimiento:  # Si está en movimiento
-            if tiempo_actual - self.actualizar_tiempo_movimiento > 100:
+        elif self.en_movimiento:  # Animación de movimiento
+            if tiempo_actual - self.actualizar_tiempo_movimiento > 100:  # Control de tiempo de animación
                 self.actualizar_tiempo_movimiento = tiempo_actual
                 self.frames_indice_movimiento = (self.frames_indice_movimiento + 1) % len(self.animacion_movimiento)
                 self.image = self.animacion_movimiento[self.frames_indice_movimiento]
-        else:
+        else:  # Animación quieto
             self.image = self.animacion_quieto[0]
 
 # --------------------------------------------------------------------------------------------------------------------------------
@@ -93,6 +85,7 @@ class Personaje:
         if self.muerto:
             return
 
+            # Volteamos la imagen si 'voltear' es True
         if self.voltear:
             voltear_imagen = pygame.transform.flip(self.image, True, False)
             ventana.blit(voltear_imagen, self.rect)
@@ -102,21 +95,26 @@ class Personaje:
 # --------------------------------------------------------------------------------------------------------------------------------
 
     def disparar(self):
-        # Aseguramos que la lista de balas existe
-        if not hasattr(self, 'balas'):
-            self.balas = pygame.sprite.Group()
+        self.disparando = True
 
         # Crear una bala en función de la dirección del personaje
         if self.direccion == "izquierda":
             bala = Bala(self.rect.left, self.rect.centery, "izquierda")
-        else:  # Asumimos que dispara hacia la derecha si no está mirando a la izquierda
+        else:
             bala = Bala(self.rect.right, self.rect.centery, "derecha")
+
         self.balas.add(bala)
 
+# --------------------------------------------------------------------------------------------------------------------------------
+
+    def para_disparo(self):
+        self.disparando = False
 
 # --------------------------------------------------------------------------------------------------------------------------------
 
     def colisiones(self, enemigos):
+        global puntuacion
+
         for enemigo in enemigos:
             if self.rect.colliderect(enemigo.rect):  # Verifica si el jugador toca al enemigo
                 self.vida -= 1  # El jugador pierde vida al tocar al enemigo
@@ -126,7 +124,13 @@ class Personaje:
 
                 enemigo.destruir()
 
-# --------------------------------------------------------------------------------------------------------------------------------
+        for bala in self.balas:
+            enemigos_colisionados = pygame.sprite.spritecollide(bala, enemigos, True)
+            if enemigos_colisionados:
+                puntuacion += 10
+                bala.kill()
+
+    # --------------------------------------------------------------------------------------------------------------------------------
 
     def recibir_danio(self):
         self.vida -= 1
